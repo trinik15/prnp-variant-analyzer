@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// A PubMed article mentioning PRNP variants
+model Paper {
+  id        Int       @id @default(autoincrement())
+  pmid      String    @unique
+  title     String    @default("")
+  authors   String    @default("")
+  journal   String    @default("")
+  pubYear   Int?
+  abstract  String    @default("")
+  doi       String    @default("")
+  keywords  String    @default("")
+  variants  Variant[]
+  createdAt DateTime  @default(now())
+}
+
+// An amino-acid variant / mutation observed in the literature
+model Variant {
+  id             Int      @id @default(autoincrement())
+  notation       String   @unique // e.g. E200K, D178N, OPRI
+  fromAA         String   @default("")
+  toAA           String   @default("")
+  position       Int      @default(0)
+  variantType    String   @default("Substitution") // Substitution | Nonsense | Insertion | Deletion
+  classification String   @default("Unclassified") // Pathogenic | Risk modifier | Protective | Polymorphism | Unclassified
+  disease        String   @default("") // GSS | FFI | fCJD | sCJD modifier ...
+  description    String   @default("")
+  papers         Paper[]
+  createdAt      DateTime @default(now())
+}
+
+// History of literature analyses run from the UI
+model SearchLog {
+  id            Int      @id @default(autoincrement())
+  term          String
+  retmax        Int      @default(50)
+  papersFound   Int      @default(0)
+  variantsFound Int      @default(0)
+  createdAt     DateTime @default(now())
+}
