@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.py text eol=lf
+*.ts text
+*.tsx text
+*.md text
