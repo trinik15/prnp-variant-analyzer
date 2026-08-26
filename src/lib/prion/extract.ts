@@ -35,6 +35,27 @@ export interface ExtractedVariant {
 export const MIN_CODON = 40;
 export const MAX_CODON = PRNP_PROTEIN_LENGTH - 10;
 
+/**
+ * Compact one-letter notations that are famous variants of NON-PRNP proteins
+ * falling INSIDE the PRNP codon window. They surface in prion-adjacent
+ * literature (prion-like aggregation, differential diagnoses, COVID-era
+ * wording) and would otherwise be misattributed to PRNP as "unclassified"
+ * variants. Rejected before KB matching; the /api/extract guard reports them
+ * with the offending gene.
+ */
+export const NON_PRNP_LOOKALIKES: Record<string, string> = {
+  A53T: "SNCA (alpha-synuclein, Parkinson disease)",
+  A30P: "SNCA (alpha-synuclein, Parkinson disease)",
+  E46K: "SNCA (alpha-synuclein, Parkinson disease)",
+  H63D: "HFE (hemochromatosis)",
+  S65C: "HFE (hemochromatosis)",
+  D614G: "SARS-CoV-2 spike",
+  N501Y: "SARS-CoV-2 spike",
+  E484K: "SARS-CoV-2 spike",
+  K417N: "SARS-CoV-2 spike",
+  H274Y: "influenza neuraminidase",
+};
+
 const THREE_AA = Object.keys(THREE_TO_ONE)
   .filter((k) => k !== "Stop")
   .join("|");
@@ -108,6 +129,7 @@ export function extractVariants(text: string): ExtractedVariant[] {
     if (!isValidCodon(pos)) continue;
     if (from === to) continue; // skip synonymous self-matches (e.g. "H2H")
     const notation = `${from}${pos}${to}`;
+    if (NON_PRNP_LOOKALIKES[notation]) continue; // famous non-PRNP protein variant
     if (out.has(notation)) continue;
     const variantType: ExtractedVariant["variantType"] = to === "X" ? "Nonsense" : "Substitution";
     out.set(notation, {
@@ -128,6 +150,7 @@ export function extractVariants(text: string): ExtractedVariant[] {
     if (!isValidCodon(pos)) continue;
     if (from === to) continue;
     const notation = `${from}${pos}${to}`;
+    if (NON_PRNP_LOOKALIKES[notation]) continue; // e.g. "Ala53Thr" = SNCA A53T
     if (out.has(notation)) continue;
     const variantType: ExtractedVariant["variantType"] = to === "X" ? "Nonsense" : "Substitution";
     out.set(notation, {
@@ -191,6 +214,7 @@ export function countVariantMentions(text: string): Map<string, number> {
     const pos = Number(m[2]);
     if (!isValidCodon(pos) || from === to) continue;
     const notation = `${from}${pos}${to}`;
+    if (NON_PRNP_LOOKALIKES[notation]) continue;
     bump(notation);
   }
 
@@ -200,6 +224,7 @@ export function countVariantMentions(text: string): Map<string, number> {
     const pos = Number(m[2]);
     if (!isValidCodon(pos) || from === to) continue;
     const notation = `${from}${pos}${to}`;
+    if (NON_PRNP_LOOKALIKES[notation]) continue;
     bump(notation);
   }
 
