@@ -6,6 +6,8 @@ import {
   FlaskConical,
   Loader2,
   Play,
+  ShieldAlert,
+  ShieldCheck,
   Sparkles,
   TextQuote,
 } from "./icons";
@@ -41,10 +43,20 @@ interface ExtractVariant {
   };
 }
 
+interface GuardBreakdown {
+  outOfWindow: number;
+  synonymous: number;
+  nonPrnp: { notation: string; gene: string }[];
+  codon129Shorthand: number;
+}
+
 interface ExtractResult {
   ok: boolean;
   chars: number;
   truncated?: boolean;
+  rawOneLetter?: number;
+  rejected?: number;
+  guard?: GuardBreakdown;
   context: PaperContext;
   variants: ExtractVariant[];
 }
@@ -64,6 +76,24 @@ CSF 14-3-3 was positive and RT-QuIC detected seeding activity; MRI showed basal
 ganglia hyperintensity on diffusion-weighted imaging. The course was rapidly
 progressive dementia with myoclonus and ataxia. Screening for an octapeptide
 repeat insertion (2-OPRI) was negative.`;
+
+/**
+ * Adversarial stress text: every hard case in one paragraph. Synonyms,
+ * codon-129 allele shorthand, in-window cross-gene lookalikes (SNCA / HFE),
+ * out-of-window lookalikes, boundary probes, a nonsense allele, a repeat
+ * event, lowercase noise, and a sentence contradicting the curated
+ * annotation (mentions count regardless of polarity).
+ */
+const STRESS_TEXT = `STRESS TEST (all hard cases at once). The proband carried a heterozygous E200K
+mutation, also written Glu200Lys; lowercase e200k is deliberately not a notation.
+His sister carried Asp178Asn segregating with 129M on the mutated allele, while
+Val129 carriers were unaffected; Met129 is the susceptibility allele in this
+family. Screening for a 5-OPRI was positive. A cousin carried Pro102Leu and one
+family a premature stop, Q160X. Differential notes that must NOT be attributed to
+PRNP: alpha-synuclein A53T and E46K (SNCA, Parkinson disease), HFE H63D
+(hemochromatosis), SARS-CoV-2 spike D614G and N501Y, and boundary probes A25V
+(signal peptide) and G250S (GPI region). Contrary to older kindred reports, this
+family showed reduced penetrance of E200K.`;
 
 export function Playground() {
   const [text, setText] = useState("");
@@ -182,6 +212,20 @@ export function Playground() {
               className="h-7 border-zinc-700 bg-zinc-900 px-2.5 text-xs text-zinc-300 hover:border-emerald-500/40 hover:text-emerald-300"
             >
               Demo snippet
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setText(STRESS_TEXT);
+                setSourceTag("stress test (adversarial cases)");
+                setResult(null);
+                setError(null);
+              }}
+              className="h-7 border-amber-500/40 bg-zinc-900 px-2.5 text-xs text-amber-300 hover:border-amber-400/60 hover:text-amber-200"
+            >
+              <ShieldAlert className="mr-1.5 h-3 w-3" />
+              Stress test
             </Button>
             <Button
               variant="outline"
@@ -338,9 +382,59 @@ export function Playground() {
               </p>
             )}
 
+            {/* guard provenance: full breakdown of every rejection category */}
+            {typeof result.rawOneLetter === "number" && result.rawOneLetter > 0 && (
+              <div className="mt-3 border-t border-zinc-800/80 pt-2.5 text-[11px] text-zinc-500">
+                <p className="flex items-start gap-2">
+                  <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500/70" />
+                  <span>
+                    {result.rawOneLetter} one-letter candidates scanned ·{" "}
+                    <span className="text-zinc-300">{result.rejected} rejected</span>
+                    {result.guard ? ", breakdown below" : " by the codon-window guard"}
+                  </span>
+                </p>
+                {result.guard && (
+                  <ul className="ml-5 mt-1.5 space-y-0.5">
+                    <li>
+                      · {result.guard.outOfWindow} out-of-window codons (SARS-CoV-2{" "}
+                      <span className="font-mono">D614G</span>/
+                      <span className="font-mono">N501Y</span>, signal-peptide and GPI probes)
+                    </li>
+                    {result.guard.nonPrnp.length > 0 && (
+                      <li>
+                        · {result.guard.nonPrnp.length} cross-gene lookalikes kept out of
+                        PRNP:{" "}
+                        {result.guard.nonPrnp.map((r, i) => (
+                          <span key={r.notation}>
+                            {i > 0 && ", "}
+                            <span className="font-mono text-zinc-300">{r.notation}</span>
+                            {" = "}
+                            {r.gene}
+                          </span>
+                        ))}
+                      </li>
+                    )}
+                    {result.guard.synonymous > 0 && (
+                      <li>· {result.guard.synonymous} synonymous self-matches</li>
+                    )}
+                    {result.guard.codon129Shorthand > 0 && (
+                      <li>
+                        · {result.guard.codon129Shorthand} codon-129 shorthand mentions
+                        (<span className="font-mono">129M</span>/
+                        <span className="font-mono">Val129</span>/
+                        <span className="font-mono">Met129</span>) folded into{" "}
+                        <span className="font-mono text-zinc-300">M129V</span>
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            )}
             <p className="mt-2 text-[10px] text-zinc-600">
-              Mentions are counted per textual occurrence; evidence tiers describe
-              what the literature reports per variant. Cross-check{" "}
+              Mentions are counted regardless of polarity: &quot;ruled out&quot; or
+              &quot;reduced penetrance&quot; still counts as a mention and does not flip
+              the curated evidence tier (tiers describe what the literature reports per
+              variant, not a per-paper verdict); cross-check{" "}
               <a
                 href={clinvarUrl("PRNP")}
                 target="_blank"
