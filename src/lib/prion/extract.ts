@@ -56,6 +56,30 @@ export const NON_PRNP_LOOKALIKES: Record<string, string> = {
   H274Y: "influenza neuraminidase",
 };
 
+/**
+ * PRNP codon-129 allele shorthand. The M/V polymorphism at codon 129 is the
+ * dominant genetic modifier in prion disease and is very often written
+ * WITHOUT the wild-type amino-acid prefix: "129M", "129V", "129MV" (the
+ * heterozygous genotype), or in words: "Met129", "Val129". All of these
+ * normalize to the curated M129V entry.
+ */
+export const CODON129_AFTER_RE = /\b129(M|V)\b/g; // "129M", "129V"
+export const CODON129_GENOTYPE_RE = /\b129(MV|VM)\b/g; // heterozygote shorthand
+export const CODON129_BEFORE_RE = /\b(Met|Val)129\b/g; // "Met129", "Val129"
+
+/**
+ * Count matches of a shared global regex safely. matchAll clones the regex
+ * (inheriting lastIndex), so a prior .test()/exec on the SAME instance would
+ * make the clone start mid-string and silently skip earlier matches. Reset
+ * lastIndex around every use to keep results order-independent.
+ */
+export function countMatches(text: string, re: RegExp): number {
+  re.lastIndex = 0;
+  const n = Array.from(text.matchAll(re)).length;
+  re.lastIndex = 0;
+  return n;
+}
+
 const THREE_AA = Object.keys(THREE_TO_ONE)
   .filter((k) => k !== "Stop")
   .join("|");
@@ -192,6 +216,24 @@ export function extractVariants(text: string): ExtractedVariant[] {
     });
   }
 
+  // --- codon-129 allele shorthand -> the M129V polymorphism entry ---
+  if (
+    countMatches(text, CODON129_AFTER_RE) > 0 ||
+    countMatches(text, CODON129_GENOTYPE_RE) > 0 ||
+    countMatches(text, CODON129_BEFORE_RE) > 0
+  ) {
+    if (!out.has("M129V")) {
+      out.set("M129V", {
+        notation: "M129V",
+        fromAA: "M",
+        toAA: "V",
+        position: 129,
+        variantType: "Substitution",
+        info: KNOWN_VARIANTS.M129V,
+      });
+    }
+  }
+
   return Array.from(out.values());
 }
 
@@ -226,6 +268,12 @@ export function countVariantMentions(text: string): Map<string, number> {
     const notation = `${from}${pos}${to}`;
     if (NON_PRNP_LOOKALIKES[notation]) continue;
     bump(notation);
+  }
+
+  // codon-129 shorthand counts as textual mentions of M129V
+  for (const re of [CODON129_AFTER_RE, CODON129_GENOTYPE_RE, CODON129_BEFORE_RE]) {
+    const n = countMatches(text, re);
+    for (let i = 0; i < n; i++) bump("M129V");
   }
 
   if (OPRI_RE.test(text)) bump("OPRI");
