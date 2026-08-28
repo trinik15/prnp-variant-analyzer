@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and feedback
+    url: https://github.com/trinik15/prnp-variant-analyzer/discussions
+    about: Usage questions, workflow ideas and general feedback on the analyzer.
+  - name: NCBI E-utilities documentation
+    url: https://www.ncbi.nlm.nih.gov/books/NBK25499/
+    about: Data source policies and rate limits.
