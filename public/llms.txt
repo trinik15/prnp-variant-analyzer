@@ -1,0 +1,35 @@
+# PRNP Variant Analyzer
+
+> Open-source tool that mines PubMed for PRNP (human prion protein gene) mutation papers, extracts reported amino-acid variants (E200K, D178N, P102L, 2-OPRI, ...), annotates each with evidence provenance from a curated knowledge base, and streams the result as a structured variant/evidence dataset (CSV + Markdown). Research use only, not a clinical tool; every call is meant to be cross-checked against ClinVar.
+
+## Page snapshots (PNG renders of the live UI, for visual inspection)
+
+- [Home, desktop 1440x900](https://prnp-variant-analyzer.space-z.ai/screenshots/home-desktop.png): tool-first landing: short thesis, the analyzer search panel with presets and Analyze button, corpus stats peeking below
+- [Home, full page desktop](https://prnp-variant-analyzer.space-z.ai/screenshots/home-full.png): complete landing page at 1440px width (3932px tall): hero + analyzer, results (stats, charts, tables), pipeline, live showcase, playground, cross-field strip
+- [Results overview, desktop](https://prnp-variant-analyzer.space-z.ai/screenshots/results-overview.png): the analyzer's results screen: corpus stat cards (papers analyzed, unique variants), top-variants chart, publications-by-year, classification donut, dataset tabs + CSV export
+- [Variant detail dialog, desktop](https://prnp-variant-analyzer.space-z.ai/screenshots/variant-detail.png): the E200K evidence dossier: position on the PRNP protein (domain map, codon 200), evidence tier + provenance, curated annotation, citing papers
+- [Papers table, expanded row, desktop](https://prnp-variant-analyzer.space-z.ai/screenshots/papers-detail.png): retrieved-paper rows with variant chips + etiology context, and the expanded abstract view: PMID/DOI, detected etiology, diagnostics, clinical features, variant highlighting
+- [Report tab, desktop](https://prnp-variant-analyzer.space-z.ai/screenshots/report-tab.png): literature frequency report (Variant | Mutation Type | Number of Mentions) over the stored corpus
+- [Stress test: adversarial extraction, desktop](https://prnp-variant-analyzer.space-z.ai/screenshots/stress-test.png): one paragraph containing synonyms (Glu200Lys), codon-129 shorthand, cross-gene lookalikes and boundary probes, and the structured output it produces
+- [Stress test: guard breakdown, desktop](https://prnp-variant-analyzer.space-z.ai/screenshots/stress-guard.png): the guard report: candidates scanned, rejected (out-of-window, cross-gene A53T/E46K/H63D with gene attribution), codon-129 shorthand folded into M129V, and the mention-polarity caveat for contradictory evidence
+- [Home, mobile 390x844](https://prnp-variant-analyzer.space-z.ai/screenshots/home-mobile.png): above-the-fold mobile rendering
+- [Home, full page mobile](https://prnp-variant-analyzer.space-z.ai/screenshots/home-mobile-full.png): complete mobile page at 390px width (8028px tall)
+
+## Structured data (JSON unless noted, no API key required)
+
+- [GET /api/showcase](https://prnp-variant-analyzer.space-z.ai/api/showcase): one complete end-to-end slice: a real PubMed abstract, the variants extracted from it, the resulting evidence table, plus CSV and Markdown previews
+- [GET /api/report](https://prnp-variant-analyzer.space-z.ai/api/report): variant frequency table over the stored corpus (Variant | Mutation Type | Number of Mentions | Papers); add `?format=md` for raw Markdown
+- [GET /api/variants](https://prnp-variant-analyzer.space-z.ai/api/variants): unique variants with classification, codon, domain and mutation type
+- [GET /api/papers](https://prnp-variant-analyzer.space-z.ai/api/papers): retrieved papers (title, authors, journal, year, PMID, abstract)
+- [GET /api/stats](https://prnp-variant-analyzer.space-z.ai/api/stats): corpus counters (papers, variants, classifications)
+- [GET /api/export?type=variants](https://prnp-variant-analyzer.space-z.ai/api/export?type=variants): CSV export, variants
+- [GET /api/export?type=papers](https://prnp-variant-analyzer.space-z.ai/api/export?type=papers): CSV export, papers
+- [POST /api/extract](https://prnp-variant-analyzer.space-z.ai/api/extract): run the same extraction pipeline on arbitrary text, JSON body `{"text": "..."}`, no PubMed call, no database write; the response includes a guard breakdown (out-of-window, synonymous, cross-gene lookalikes with gene attribution, codon-129 shorthand folded into M129V)
+- [GET /api/crosslinks](https://prnp-variant-analyzer.space-z.ai/api/crosslinks): live PubMed counts for 8 adjacent research spheres (FFI, vCJD/BSE, kuru, scrapie, ...)
+- [GET /scripts/prnp_pubmed_variants.py](https://prnp-variant-analyzer.space-z.ai/scripts/prnp_pubmed_variants.py): standalone Biopython pipeline script (PubMed to variant frequency report, no web app needed)
+
+## Provenance and caveats
+
+- Data source: NCBI PubMed E-utilities (esearch/efetch), no API key, rate-limited to 3 req/s
+- Evidence language describes reported literature associations with provenance; the tool is explicitly not a classifier and not a clinical tool
+- License: MIT
