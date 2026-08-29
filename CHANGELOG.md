@@ -2,6 +2,27 @@
 
 All notable changes to the PRNP Variant Analyzer are documented here.
 The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+## [1.0.0] - 2026-08-29
+
+Public launch.
+
+### Added
+- Codon-129 allele shorthand detection: `129M`, `129V`, `129MV`, `Met129`,
+  `Val129` all fold into the curated M129V entry (#1).
+- Guard breakdown in the extraction response: candidates scanned, rejection
+  categories with gene attribution, shorthand fold count (#1).
+- Playground stress test button loading every adversarial case at once (#1).
+- Standalone Biopython pipeline (`public/scripts/prnp_pubmed_variants.py`)
+  mirroring the TypeScript engine: identical output on the adversarial
+  suite.
+
+### Fixed
+- Shared global regexes no longer leak `lastIndex` between scans; match
+  counts are now order-independent (#1).
+
+### CI
+- Python engine smoke test enabled now that the pipeline has landed
+  (runs fully offline).
 
 ## [0.3.0] - 2026-08-29
 
