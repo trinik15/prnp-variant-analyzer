@@ -28,3 +28,37 @@ jobs:
 
       - name: Typecheck
         run: bunx tsc --noEmit
+
+  python:
+    name: Python pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Biopython
+        run: pip install biopython
+
+      - name: Syntax check
+        run: python -m py_compile public/scripts/prnp_pubmed_variants.py
+
+      - name: Engine smoke test (offline)
+        run: |
+          python - <<'EOF'
+          import sys
+          sys.path.insert(0, "public/scripts")
+          from prnp_pubmed_variants import extract_variants
+
+          text = (
+              "The proband carried E200K (Glu200Lys), D178N and P102L; "
+              "screening for 129M and Val129 variants. SNCA A53T noted."
+          )
+          result = extract_variants(text)
+          expected = {"E200K", "D178N", "P102L", "M129V"}
+          assert expected <= set(result), f"missing variants: {expected - set(result)}"
+          assert "A53T" not in result, "cross-gene lookalike leaked into PRNP"
+          print("engine smoke OK:", sorted(result))
+          EOF
