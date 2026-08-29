@@ -12,6 +12,6 @@
 - [ ] No clinical claims added anywhere (evidence tiers describe literature, full stop)
 - [ ] Screenshots attached for UI changes
 
-## Notes for reviewers
+## Notes for the maintainer
 
 <!-- Anything worth flagging: trade-offs, follow-up work, data caveats. -->
