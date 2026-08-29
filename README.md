@@ -93,6 +93,12 @@ produce identical output on the adversarial test suite.
 
 Next.js (App Router) · TypeScript · Prisma + SQLite · Tailwind CSS · Recharts · Biopython (standalone pipeline)
 
+## Questions & suggestions
+
+For usage questions and feature ideas, prefer a
+[Discussion](https://github.com/trinik15/prnp-variant-analyzer/discussions)
+over an issue.
+
 ## License
 
 MIT. Data comes from NCBI PubMed via the public E-utilities API. Please respect
