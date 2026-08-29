@@ -19,6 +19,11 @@ bun run lint
 bunx tsc --noEmit
 ```
 
+## Commit style
+
+I keep conventional commits (`feat:` / `fix:` / `docs:` / `chore:`) so the
+CHANGELOG and release notes stay greppable. Match that in PRs.
+
 ## Changing the extraction engine?
 
 The engine (`src/lib/prion/extract.ts`) is the most sensitive part of the
