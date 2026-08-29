@@ -13,8 +13,8 @@ Please use GitHub's private vulnerability reporting
 
 This is a research tool that queries public NCBI APIs and runs a
 deterministic regex pipeline. There is no authentication, no user data
-storage and no secrets in the codebase. The classes of issues we care most
-about:
+storage and no secrets in the codebase. The classes of issues that matter
+most here:
 
 - Injection through user-supplied PubMed query terms into the pipeline.
 - Path traversal or file exposure via the export endpoints.
