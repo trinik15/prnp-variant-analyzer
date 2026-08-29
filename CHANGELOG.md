@@ -3,6 +3,17 @@
 All notable changes to the PRNP Variant Analyzer are documented here.
 The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] - 2026-08-29
+
+### Added
+- Tool-first homepage: the analyzer panel is the page; every run writes
+  a shareable `?term=` URL.
+- CI: lint + typecheck for the web app.
+- Machine-readable surface: `/llms.txt` plus real PNG renders under
+  `/screenshots/`.
+- Community files: contributing guide, code of conduct, security policy,
+  issue and PR templates.
+
 ## [0.2.0] - 2026-08-27
 
 ### Added
